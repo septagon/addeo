@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "Addeo",
+    "description": "Add synchronized third-party content to online videos.",
+    "version": "0.01",
+    "content_scripts": [
+        {
+            "matches": ["https://*.youtube.com/*addeo*"],
+            "js": ["content_youtube.js"]
+        }
+    ],
+    "permissions": [
+        "https://*.youtube.com/*addeo*"
+    ]
+}
