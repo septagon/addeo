@@ -203,7 +203,6 @@ const injectAddeo = function () {
             pause(addeo);
         };
         onVideoAdStopped = function () {
-            play(addeo);
             syncCurrentTime();
         };
 
