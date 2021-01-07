@@ -81,7 +81,7 @@ This repository is made available under the terms of the
 Exceptions to this include the [logo](assets/addeo_logo.png) and 
 [icon](src/addeo/img) assets, which are governed by the 
 [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) license 
-as described in the assets [LICENSE](assets/LICENSE) file. (NOTE: This more 
+as described in the assets [License](assets/License.md) file. (NOTE: This more 
 restrictive license for logo and icons was chosen as a default, because I do 
 not know of a legitimate reason someone would want to modify and redistribute 
 a logo or icon. If you have a reason you would like this asset license 
