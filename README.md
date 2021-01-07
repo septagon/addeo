@@ -26,7 +26,7 @@ addeos.
 
 An addeo, more formally, is any kind of content which is *not* part of a 
 certain video but for which said video is part of the intended context. For 
-example, suppose a film studio produces a film and distributes it the 
+example, suppose a film studio produces a film and distributes it the on
 Internet, but does not include Minbari subtitles. Minbari Ambassador Delenn 
 watches this film, loves it, and wants to share it with her people, so she 
 independently commissions the creation of Minbari subtitles. These subtitles 
@@ -36,8 +36,8 @@ film. Thus, these subtitles are an addeo.
 
 At present (January 2021), distributing an addeo is not a simple or 
 well-supported activity. Continuing with the example of Ambassador Delenn, if 
-she wants to share these subtitles with her people, she no good options and 
-only a few bad ones: she could provide them as a transcript that Minbari 
+she wants to share these subtitles with her people, she has no good options 
+and only a few bad ones: she could provide them as a transcript that Minbari 
 viewers will have to read on their own, or she could create a separate video 
 with just the subtitles that viewers will have to watch alongside the film, 
 looking back and forth and manually synchronizing the times. Ideally, she 
