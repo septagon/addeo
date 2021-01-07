@@ -182,22 +182,6 @@ const injectAddeo = function () {
             return;
         }
 
-        onVideoAdStarted = function () {
-            pause(addeo);
-        };
-        onVideoAdStopped = function () {
-            play(addeo);
-        };
-
-        onVideoPaused = function () {
-            pause(addeo);
-        };
-        onVideoPlayed = function () {
-            if (videoAdsObserver.adState === videoAdsObserver.AD_STATE_STOPPED) {
-                play(addeo);
-            }
-        };
-
         let resumeOnSeeked = false;
         const syncCurrentTime = function () {
             addeo.currentTime = video.currentTime;
@@ -214,6 +198,23 @@ const injectAddeo = function () {
                 resumeOnSeeked = false;
             }
         });
+
+        onVideoAdStarted = function () {
+            pause(addeo);
+        };
+        onVideoAdStopped = function () {
+            play(addeo);
+            syncCurrentTime();
+        };
+
+        onVideoPaused = function () {
+            pause(addeo);
+        };
+        onVideoPlayed = function () {
+            if (videoAdsObserver.adState === videoAdsObserver.AD_STATE_STOPPED) {
+                play(addeo);
+            }
+        };
 
         addeo.addEventListener("play", function () {
             if (video.paused || videoAdsObserver.adState === videoAdsObserver.AD_STATE_PLAYING) {
