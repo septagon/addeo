@@ -4,6 +4,7 @@ const params = new URLSearchParams(window.location.search);
 const ADDEO = params.get("addeo");
 const SCALE = params.has("scale") ? params.get("scale") : "30";
 const POSITION = params.has("position") ? params.get("position") : "topleft";
+const CHROMA_KEY = true; // TODO: Make this parameter-based.
 
 // TODO: Replace all internals of this class with a real eventing system for ad observation.
 class AdStateObserver {
@@ -81,14 +82,14 @@ const injectAddeo = function () {
     const additiveContent = document.createElement("div");
     additiveContent.style.position = "relative";
     additiveContent.style.display = "block";
-    const updateStyle = function () {
+    const updateAdditiveContentStyle = function () {
         additiveContent.style.width = video.style.width;
         additiveContent.style.height = video.style.height;
         additiveContent.style.left = video.style.left;
         additiveContent.style.top = video.style.top;
     };
-    updateStyle();
-    const videoResizeObserver = new MutationObserver(updateStyle);
+    updateAdditiveContentStyle();
+    const videoResizeObserver = new MutationObserver(updateAdditiveContentStyle);
     videoResizeObserver.observe(video, { attributes : true, attributeFilter : ['style'] });
     video.parentElement.appendChild(additiveContent);
 
@@ -222,6 +223,58 @@ const injectAddeo = function () {
         });
 
         syncCurrentTime();
+
+        if (CHROMA_KEY) {
+            addeo.id = "addeo";
+            addeo.style.display = "none";
+
+            const bjsScript = iframe.contentDocument.createElement("script");
+            bjsScript.src = "https://cdn.babylonjs.com/babylon.js";
+            bjsScript.onload = () => {
+                const canvas = iframe.contentDocument.createElement("canvas");
+                canvas.id = "babylon-canvas";
+                canvas.style.position = "absolute";
+                const updateCanvasStyle = function () {
+                    canvas.style.width = addeo.style.width;
+                    canvas.style.height = addeo.style.height;
+                    canvas.style.left = addeo.style.left;
+                    canvas.style.top = addeo.style.top;
+                };
+                updateCanvasStyle();
+                const addeoResizeObserver = new MutationObserver(updateCanvasStyle);
+                addeoResizeObserver.observe(addeo, { attributes : true, attributeFilter : ['style'] });
+                
+                addeo.parentElement.appendChild(canvas);
+                
+                // TODO: This can't possibly be the best way to do this.
+                const babylonScript = `
+                const canvas = document.getElementById("babylon-canvas");
+                const addeo = document.getElementById("addeo");
+
+                const createScene = function (engine) {
+                    var scene = new BABYLON.Scene(engine);
+                    var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3.Zero(), scene);
+                    
+                    const videoTexture = new BABYLON.VideoTexture("videoTexture", addeo, scene);
+                    const layer = new BABYLON.Layer("layer", null, scene, true);
+                    layer.texture = videoTexture;
+                    
+                    return scene;
+                };
+                
+                const engine = new BABYLON.Engine(canvas);
+                const scene = createScene(engine);
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
+                `;
+                const bjsYoutubeScript = iframe.contentDocument.createElement("script");
+                bjsYoutubeScript.textContent = babylonScript;
+                iframe.contentDocument.body.appendChild(bjsYoutubeScript);
+            };
+
+            iframe.contentDocument.body.appendChild(bjsScript);
+        }
     };
 
     iframe.onload = initializeAddeo;
