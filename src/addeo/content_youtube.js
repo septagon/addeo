@@ -327,6 +327,10 @@ const injectAddeo = function () {
 
             void main() {
                 gl_FragColor = texture2D(textureSampler, vUV);
+
+                if (gl_FragColor.x < 0.5) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                }
             }
             `;
 
