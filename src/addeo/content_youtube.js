@@ -262,16 +262,15 @@ const injectAddeo = function () {
             
             addeo.parentElement.appendChild(canvas);
 
-            // From https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_textures_in_WebGL
+            // The following WebGL code is based heavily on the Mozilla WebGL tutorials culminating on
+            // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_textures_in_WebGL
             const initTexture = function (gl) {
                 const texture = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-                
+
                 // Initialize with a transparent dummy pixel so we don't have to wait.
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
-              
-                // Turn off mips and set  wrapping to clamp to edge so it
-                // will work regardless of the dimensions of the video.
+
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -324,13 +323,17 @@ const injectAddeo = function () {
             varying vec2 vUV;
 
             uniform sampler2D textureSampler;
+            uniform vec3 chromaKey;
+            uniform float threshold;
+            uniform float power;
 
             void main() {
                 gl_FragColor = texture2D(textureSampler, vUV);
 
-                if (gl_FragColor.x < 0.5) {
-                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-                }
+                vec3 offset = gl_FragColor.rgb - chromaKey;
+                float distSquared = dot(offset, offset);
+                float t = min(1.0, pow(distSquared, 0.5 * power) / pow(threshold, power));
+                gl_FragColor = t * gl_FragColor + (1.0 - t) * vec4(0.0, 0.0, 0.0, 0.0);
             }
             `;
 
@@ -342,8 +345,8 @@ const injectAddeo = function () {
             gl.attachShader(program, fragmentShader);
 
             gl.linkProgram(program);
-
             if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.dir(gl.getProgramInfoLog(program));
                 throw new Error("Failed to link shader program!");
             }
 
@@ -352,6 +355,9 @@ const injectAddeo = function () {
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW);
             const positionLocation = gl.getAttribLocation(program, "position");
             const textureSamplerLocation = gl.getUniformLocation(program, "textureSampler");
+            const chromaKeyLocation = gl.getUniformLocation(program, "chromaKey");
+            const thresholdLocation = gl.getUniformLocation(program, "threshold");
+            const powerLocation = gl.getUniformLocation(program, "power");
 
             const texture = initTexture(gl);
 
@@ -369,6 +375,10 @@ const injectAddeo = function () {
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 gl.uniform1i(textureSamplerLocation, 0);
+
+                gl.uniform3f(chromaKeyLocation, 0.0, 0.0, 0.0);
+                gl.uniform1f(thresholdLocation, 0.1);
+                gl.uniform1f(powerLocation, 2.0);
 
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
