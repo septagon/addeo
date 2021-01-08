@@ -125,7 +125,9 @@ const injectAddeo = function () {
             iframe.style.right = "0px";
             break;
     }
+    iframe.style.backgroundColor = "transparent";
     iframe.style.pointerEvents = "none";
+    iframe.allowTransparency = true;
     additiveContent.appendChild(iframe);
 
     // Helpers to allow play/pause behavior (which is a little fiddly due to asynchrony) to be 
@@ -136,7 +138,17 @@ const injectAddeo = function () {
         }
 
         try {
+            // TODO: Empirically, a display style of "none" changes the behavior of play() somehow,
+            // causing strange behaviors. Until this is resolved, just put the display style to
+            // block while awaiting play(), then reset it to what it's supposed to be. This causes
+            // a one-frame flicker on resume, but at present it's not the top priority right now.
+            const oldDisplay = video.style.display;
+            video.style.display = "block";
+
             await video.play();
+
+            video.style.display = oldDisplay;
+
         } catch (e) {
             console.error(e);
         }
@@ -211,7 +223,7 @@ const injectAddeo = function () {
             pause(addeo);
         };
         onVideoPlayed = function () {
-            if (videoAdsObserver.adState === videoAdsObserver.AD_STATE_STOPPED) {
+            if (videoAdsObserver.adState !== videoAdsObserver.AD_STATE_PLAYING) {
                 play(addeo);
             }
         };
@@ -225,55 +237,34 @@ const injectAddeo = function () {
         syncCurrentTime();
 
         if (CHROMA_KEY) {
-            addeo.id = "addeo";
             addeo.style.display = "none";
-
-            const bjsScript = iframe.contentDocument.createElement("script");
-            bjsScript.src = "https://cdn.babylonjs.com/babylon.js";
-            bjsScript.onload = () => {
-                const canvas = iframe.contentDocument.createElement("canvas");
-                canvas.id = "babylon-canvas";
-                canvas.style.position = "absolute";
-                const updateCanvasStyle = function () {
-                    canvas.style.width = addeo.style.width;
-                    canvas.style.height = addeo.style.height;
-                    canvas.style.left = addeo.style.left;
-                    canvas.style.top = addeo.style.top;
-                };
-                updateCanvasStyle();
-                const addeoResizeObserver = new MutationObserver(updateCanvasStyle);
-                addeoResizeObserver.observe(addeo, { attributes : true, attributeFilter : ['style'] });
-                
-                addeo.parentElement.appendChild(canvas);
-                
-                // TODO: This can't possibly be the best way to do this.
-                const babylonScript = `
-                const canvas = document.getElementById("babylon-canvas");
-                const addeo = document.getElementById("addeo");
-
-                const createScene = function (engine) {
-                    var scene = new BABYLON.Scene(engine);
-                    var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3.Zero(), scene);
-                    
-                    const videoTexture = new BABYLON.VideoTexture("videoTexture", addeo, scene);
-                    const layer = new BABYLON.Layer("layer", null, scene, true);
-                    layer.texture = videoTexture;
-                    
-                    return scene;
-                };
-                
-                const engine = new BABYLON.Engine(canvas);
-                const scene = createScene(engine);
-                engine.runRenderLoop(function () {
-                    scene.render();
-                });
-                `;
-                const bjsYoutubeScript = iframe.contentDocument.createElement("script");
-                bjsYoutubeScript.textContent = babylonScript;
-                iframe.contentDocument.body.appendChild(bjsYoutubeScript);
+            // The YouTube embed iframe has some pretty aggressive background coloring, so we set
+            // the whole ancestry's background to be transparent to be safe.
+            const setBackgroundColorsTransparent = function (element) {
+                element.style.backgroundColor = "transparent";
+                if (element !== iframe.contentDocument.body) {
+                    setBackgroundColorsTransparent(element.parentElement);
+                }
             };
+            setBackgroundColorsTransparent(addeo.parentElement);
 
-            iframe.contentDocument.body.appendChild(bjsScript);
+            const canvas = iframe.contentDocument.createElement("canvas");
+            canvas.style.position = "absolute";
+            const updateCanvasStyle = function () {
+                canvas.style.width = addeo.style.width;
+                canvas.style.height = addeo.style.height;
+                canvas.style.left = addeo.style.left;
+                canvas.style.top = addeo.style.top;
+            };
+            updateCanvasStyle();
+            const addeoResizeObserver = new MutationObserver(updateCanvasStyle);
+            addeoResizeObserver.observe(addeo, { attributes : true, attributeFilter : ['style'] });
+            
+            addeo.parentElement.appendChild(canvas);
+
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(0, 0, 150, 75);
         }
     };
 
