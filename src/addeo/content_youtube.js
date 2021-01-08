@@ -4,7 +4,9 @@ const params = new URLSearchParams(window.location.search);
 const ADDEO = params.get("addeo");
 const SCALE = params.has("scale") ? params.get("scale") : "30";
 const POSITION = params.has("position") ? params.get("position") : "topleft";
-const CHROMA_KEY = true; // TODO: Make this parameter-based.
+const CHROMA_KEY = params.has("chromaKey") ? params.get("chromaKey") : null;
+const THRESHOLD = params.has("threshold") ? parseFloat(params.get("threshold")) : 0.1;
+const POWER = params.has("power") ? parseFloat(params.get("power")) : 2.0;
 
 // TODO: Replace all internals of this class with a real eventing system for ad observation.
 class AdStateObserver {
@@ -237,6 +239,20 @@ const injectAddeo = function () {
         syncCurrentTime();
 
         if (CHROMA_KEY) {
+            // From the excellent answer here: https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+            const hexToRgb = function (hex) {
+                var result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: (parseInt(result[1], 16) / 255.0),
+                    g: (parseInt(result[2], 16) / 255.0),
+                    b: (parseInt(result[3], 16) / 255.0)
+                } : null;
+            }
+            const chromaKey = hexToRgb(CHROMA_KEY);
+            if (!chromaKey) {
+                return;
+            }
+
             addeo.style.display = "none";
             // The YouTube embed iframe has some pretty aggressive background coloring, so we set
             // the whole ancestry's background to be transparent to be safe.
@@ -376,9 +392,9 @@ const injectAddeo = function () {
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 gl.uniform1i(textureSamplerLocation, 0);
 
-                gl.uniform3f(chromaKeyLocation, 0.0, 0.0, 0.0);
-                gl.uniform1f(thresholdLocation, 0.1);
-                gl.uniform1f(powerLocation, 2.0);
+                gl.uniform3f(chromaKeyLocation, chromaKey.r, chromaKey.g, chromaKey.b);
+                gl.uniform1f(thresholdLocation, THRESHOLD);
+                gl.uniform1f(powerLocation, POWER);
 
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
