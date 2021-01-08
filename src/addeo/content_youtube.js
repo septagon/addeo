@@ -266,20 +266,9 @@ const injectAddeo = function () {
             const initTexture = function (gl) {
                 const texture = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-              
-                // Because video has to be download over the internet
-                // they might take a moment until it's ready so
-                // put a single pixel in the texture so we can
-                // use it immediately.
-                const level = 0;
-                const internalFormat = gl.RGBA;
-                const width = 1;
-                const height = 1;
-                const border = 0;
-                const srcFormat = gl.RGBA;
-                const srcType = gl.UNSIGNED_BYTE;
-                const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+                
+                // Initialize with a transparent dummy pixel so we don't have to wait.
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
               
                 // Turn off mips and set  wrapping to clamp to edge so it
                 // will work regardless of the dimensions of the video.
@@ -325,7 +314,7 @@ const injectAddeo = function () {
 
             void main() {
                 gl_Position = vec4(position.x * 2.0 - 1.0, position.y * 2.0 - 1.0, 1.0, 1.0);
-                vUV = position;
+                vUV = vec2(position.x, 1.0 - position.y);
             }
             `;
 
@@ -337,7 +326,7 @@ const injectAddeo = function () {
             uniform sampler2D textureSampler;
 
             void main() {
-                gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+                gl_FragColor = texture2D(textureSampler, vUV);
             }
             `;
 
@@ -357,21 +346,31 @@ const injectAddeo = function () {
             const vertexBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW);
-            const vertexPositionLocation = gl.getAttribLocation(program, "position");
+            const positionLocation = gl.getAttribLocation(program, "position");
+            const textureSamplerLocation = gl.getUniformLocation(program, "textureSampler");
+
+            const texture = initTexture(gl);
 
             const render = function () {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
+                updateTexture(gl, texture, addeo);
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-                gl.vertexAttribPointer(vertexPositionLocation, 2, gl.FLOAT, false, 0, 0);
-                gl.enableVertexAttribArray(vertexPositionLocation);
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(positionLocation);
 
                 gl.useProgram(program);
 
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            };
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.uniform1i(textureSamplerLocation, 0);
 
-            render(gl);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                iframe.contentWindow.requestAnimationFrame(render);
+            };
+            iframe.contentWindow.requestAnimationFrame(render);
         }
     };
 
