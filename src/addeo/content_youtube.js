@@ -262,9 +262,116 @@ const injectAddeo = function () {
             
             addeo.parentElement.appendChild(canvas);
 
-            var ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#FF0000";
-            ctx.fillRect(0, 0, 150, 75);
+            // From https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_textures_in_WebGL
+            const initTexture = function (gl) {
+                const texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+              
+                // Because video has to be download over the internet
+                // they might take a moment until it's ready so
+                // put a single pixel in the texture so we can
+                // use it immediately.
+                const level = 0;
+                const internalFormat = gl.RGBA;
+                const width = 1;
+                const height = 1;
+                const border = 0;
+                const srcFormat = gl.RGBA;
+                const srcType = gl.UNSIGNED_BYTE;
+                const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+              
+                // Turn off mips and set  wrapping to clamp to edge so it
+                // will work regardless of the dimensions of the video.
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+              
+                return texture;
+            };
+
+            const updateTexture = function (gl, texture, video) {
+                const level = 0;
+                const internalFormat = gl.RGBA;
+                const srcFormat = gl.RGBA;
+                const srcType = gl.UNSIGNED_BYTE;
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
+            };
+
+            const loadShader = function (gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+    
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.dir(gl.getShaderInfoLog(shader));
+                    throw new Error("Failed to compile shader!");
+                }
+    
+                return shader;
+            };
+
+            // Takes a dependency on versions of Chrome from at least a decade ago, I guess.
+            const gl = canvas.getContext("webgl2");
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+
+            const vertexShaderSource = `
+            precision highp float;
+
+            attribute vec2 position;
+
+            varying vec2 vUV;
+
+            void main() {
+                gl_Position = vec4(position.x * 2.0 - 1.0, position.y * 2.0 - 1.0, 1.0, 1.0);
+                vUV = position;
+            }
+            `;
+
+            const fragmentShaderSource = `
+            precision highp float;
+
+            varying vec2 vUV;
+
+            uniform sampler2D textureSampler;
+
+            void main() {
+                gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+            }
+            `;
+
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                throw new Error("Failed to link shader program!");
+            }
+
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW);
+            const vertexPositionLocation = gl.getAttribLocation(program, "position");
+
+            const render = function () {
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.vertexAttribPointer(vertexPositionLocation, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(vertexPositionLocation);
+
+                gl.useProgram(program);
+
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            };
+
+            render(gl);
         }
     };
 
