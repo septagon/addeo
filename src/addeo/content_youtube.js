@@ -267,6 +267,8 @@ const injectAddeo = function () {
             const canvas = iframe.contentDocument.createElement("canvas");
             canvas.style.position = "absolute";
             const updateCanvasStyle = function () {
+                canvas.width = parseInt(addeo.style.width);
+                canvas.height = parseInt(addeo.style.height);
                 canvas.style.width = addeo.style.width;
                 canvas.style.height = addeo.style.height;
                 canvas.style.left = addeo.style.left;
@@ -295,12 +297,8 @@ const injectAddeo = function () {
             };
 
             const updateTexture = function (gl, texture, video) {
-                const level = 0;
-                const internalFormat = gl.RGBA;
-                const srcFormat = gl.RGBA;
-                const srcType = gl.UNSIGNED_BYTE;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
             };
 
             const loadShader = function (gl, type, source) {
