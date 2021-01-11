@@ -68,7 +68,7 @@ and if content can be recombined and redistributed without anybody needing to
 copy or take down anything, that opens up a whole new world of content for 
 platforms to host and serve.
 
-## Who *Isn't* Addeo Good For?
+## Who Is Addeo *Not* Good For?
 
 Honestly, I have no idea. Content takedown enthusiasts, maybe? Is that a thing?
 
