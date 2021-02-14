@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Addeo",
     "description": "Add synchronized third-party content to online videos.",
-    "version": "0.01",
+    "version": "0.02",
     "icons": {
         "16": "img/icon16.png",
         "48": "img/icon48.png",
