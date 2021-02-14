@@ -8,13 +8,26 @@
         "48": "img/icon48.png",
         "128": "img/icon128.png"
     },
+    "background": {
+        "scripts": ["background.js"]
+    },
     "content_scripts": [
         {
             "matches": ["https://*.youtube.com/*addeo*"],
             "js": ["content_youtube.js"]
+        },
+        {
+            "matches": ["https://*.youtube.com/embed*addeo*"],
+            "js": ["content_youtube_addeo.js"],
+            "all_frames": true
+        },
+        {
+            "matches": ["https://*.disneyplus.com/video/*addeo*"],
+            "js": ["content_disneyplus_video.js"]
         }
     ],
     "permissions": [
-        "https://*.youtube.com/*addeo*"
+        "https://*.youtube.com/*addeo*",
+        "https://*.disneyplus.com/*addeo*"
     ]
 }
