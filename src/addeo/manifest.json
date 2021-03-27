@@ -23,7 +23,11 @@
         },
         {
             "matches": ["https://*.disneyplus.com/video/*addeo*"],
-            "js": ["content_disneyplus_video.js"]
+            "js": ["content_shared_video.js", "content_disneyplus_video.js"]
+        },
+        {
+            "matches": ["https://*.amazon.com/gp/video/*addeo*"],
+            "js": ["content_shared_video.js", "content_amazon_video.js"]
         }
     ],
     "permissions": [

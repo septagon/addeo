@@ -1,6 +1,6 @@
-const DISNEY_PLUS_VIDEO_PARENT_NAME = "btm-media-client";
+const AMAZON_VIDEO_PARENT_NAME = "rendererContainer";
 const getDisneyPlusVideo = function () {
-    const elements = document.getElementsByClassName(DISNEY_PLUS_VIDEO_PARENT_NAME);
+    const elements = document.getElementsByClassName(AMAZON_VIDEO_PARENT_NAME);
     if (elements.length < 1) {
         return undefined;
     }
