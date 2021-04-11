@@ -28,6 +28,10 @@
         {
             "matches": ["https://*.amazon.com/gp/video/*addeo*"],
             "js": ["content_shared_video.js", "content_amazon_video.js"]
+        },
+        {
+            "matches": ["https://*.netflix.com/watch/*addeo*"],
+            "js": ["content_shared_video.js", "content_netflix_video.js"]
         }
     ],
     "permissions": [

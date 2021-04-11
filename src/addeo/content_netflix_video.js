@@ -1,10 +1,39 @@
-const AMAZON_VIDEO_PARENT_NAME = "rendererContainer";
-const getAmazonVideo = function () {
-    const elements = document.getElementsByClassName(AMAZON_VIDEO_PARENT_NAME);
+const getNetflixVideo = function () {
+    const elements = document.getElementsByTagName("video");
     if (elements.length < 1) {
         return undefined;
     }
-    return elements[0].children[0];
+    const video = elements[0];
+
+    // Netflix is not a huge fan of me setting the current time of the video directly, so I have 
+    // to use the API directly for this one. I'm still using the video directly for other 
+    // functions (because I had to get the real video for parenting purposes), but long-term
+    // perhaps that should change. This usage and shimming demonstrates a pattern that other
+    // site integrations can also use, as needed. Thanks to the following question/answer for
+    // showing how to get the player that's used to control the video.
+    // https://stackoverflow.com/questions/42105028/netflix-video-player-in-chrome-how-to-seek
+    const videoPlayer = netflix.appContext.state.playerApp.getAPI().videoPlayer;
+    const sessionId = videoPlayer.getAllPlayerSessionIds()[0];
+    const player = videoPlayer.getVideoPlayerBySessionId(sessionId);
+    
+    return {
+        get currentTime() {
+            return video.currentTime;
+        },
+        set currentTime(newTime) {
+            player.seek(Math.round(1000 * newTime));
+        },
+        pause() {
+            video.pause();
+        },
+        play() {
+            return video.play();
+        },
+        addEventListener(name, listener) {
+            video.addEventListener(name, listener);
+        },
+        parentElement = video.parentElement
+    };
 }
 
 // ---------------- BEGIN MAIN PROGRAM ----------------
@@ -56,15 +85,17 @@ const createAddeoYouTubeIFrame = function (additiveContent) {
 
 const injectAddeo = function () {
     // Acquire the primary video.
-    const video = getAmazonVideo();
+    const video = getNetflixVideo();
     if (video === undefined) {
         console.log("Unable to find video; retrying.");
         setTimeout(injectAddeo, 500);
         return;
     }
 
+    
     // Create the additive content div.
     const additiveContent = document.createElement("div");
+    additiveContent.id = "additive-content";
     additiveContent.style.position = "absolute";
     additiveContent.style.top = "0px";
     additiveContent.style.left = "0px";
@@ -73,7 +104,7 @@ const injectAddeo = function () {
     video.parentElement.appendChild(additiveContent);
 
     const controller = new SynchronizedVideoController(video, additiveContent, COMMANDS, CHROMAKEY);
-
+    
     // Create the addeo iframe.
     if(ADDEO_YOUTUBE_ID) {
         createAddeoYouTubeIFrame(additiveContent);
