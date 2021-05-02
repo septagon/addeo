@@ -12,16 +12,14 @@ const getNetflixVideo = function () {
     // site integrations can also use, as needed. Thanks to the following question/answer for
     // showing how to get the player that's used to control the video.
     // https://stackoverflow.com/questions/42105028/netflix-video-player-in-chrome-how-to-seek
-    const videoPlayer = netflix.appContext.state.playerApp.getAPI().videoPlayer;
-    const sessionId = videoPlayer.getAllPlayerSessionIds()[0];
-    const player = videoPlayer.getVideoPlayerBySessionId(sessionId);
+    chrome.runtime.sendMessage({background: true, netflix_player_initialize: true});
     
     return {
         get currentTime() {
             return video.currentTime;
         },
         set currentTime(newTime) {
-            player.seek(Math.round(1000 * newTime));
+            chrome.runtime.sendMessage({background: true, netflix_player_seek: true, newTime: newTime});
         },
         pause() {
             video.pause();
@@ -32,7 +30,7 @@ const getNetflixVideo = function () {
         addEventListener(name, listener) {
             video.addEventListener(name, listener);
         },
-        parentElement = video.parentElement
+        parentElement: video.parentElement
     };
 }
 
