@@ -350,14 +350,14 @@ class SynchronizedVideoController {
         this._expectedPauseCalls = 0;
         this._expectedSeekCalls = 0;
         
-        this._video.addEventListener("play", this._onVideoPlayed.bind(this));
-        this._video.addEventListener("pause", this._onVideoPaused.bind(this));
-        this._video.addEventListener("seeking", this._onVideoSeeking.bind(this));
-        this._video.addEventListener("timeupdate", this._onVideoTimeUpdated.bind(this));
-        
-        this._sender.addListener("timeupdated", this._addeoTimeUpdated.bind(this));
-        
         this._sender.addListener("loaded", () => {
+            this._video.addEventListener("play", this._onVideoPlayed.bind(this));
+            this._video.addEventListener("pause", this._onVideoPaused.bind(this));
+            this._video.addEventListener("seeking", this._onVideoSeeking.bind(this));
+            this._video.addEventListener("timeupdate", this._onVideoTimeUpdated.bind(this));
+            
+            this._sender.addListener("timeupdated", this._addeoTimeUpdated.bind(this));
+            
             if (chromakey !== undefined) {
                 const chromakeyArgs = chromakey.split(",");
                 this._sender.sendAsync({
