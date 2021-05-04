@@ -270,7 +270,12 @@ const initializeAddeo = function () {
         startCanvasRendering(addeo, canvas);
     }
 
-    receiver.send({kind: "loaded"});
+    const loadedSender = function () {
+        receiver.send({kind: "loaded"});
+        addeo.removeEventListener("canplay", loadedSender)
+    };
+    addeo.addEventListener("canplay", loadedSender);
+
 };
 
 initializeAddeo();

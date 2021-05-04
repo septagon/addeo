@@ -339,22 +339,22 @@ class SynchronizedVideoController {
         this._additiveContent = additiveContent;
         this._sync = new SynchronizationTimeSeries(synchronizationInstructions);
         this._sender = new MessageSender();
-
+        
         this._currentTimeAddeoCache = 0;
         this._playbackRateAddeoCache = 1;
 
         this._updating = false;
         this._seeking = false;
-
+        
         this._expectedPlayCalls = 0;
         this._expectedPauseCalls = 0;
         this._expectedSeekCalls = 0;
-
+        
         this._video.addEventListener("play", this._onVideoPlayed.bind(this));
         this._video.addEventListener("pause", this._onVideoPaused.bind(this));
         this._video.addEventListener("seeking", this._onVideoSeeking.bind(this));
         this._video.addEventListener("timeupdate", this._onVideoTimeUpdated.bind(this));
-
+        
         this._sender.addListener("timeupdated", this._addeoTimeUpdated.bind(this));
         
         this._sender.addListener("loaded", () => {
@@ -367,11 +367,14 @@ class SynchronizedVideoController {
                     power: parseFloat(chromakeyArgs[2])
                 });
             }
-
+            
             this._expectedPlayCalls += 1;
             this._video.play();
-            this._video.currentTime = 0;
+            this._sync.seek(this._video.currentTime);
+            this._onVideoSeeking();
         });
+        
+        this._sync.seek(this._video.currentTime);
         this._video.pause();
     }
 
@@ -394,7 +397,7 @@ class SynchronizedVideoController {
             this._expectedPauseCalls += 1;
             this._video.pause();
         }
-
+        
         if (!this._sync.addeoPaused) {
             this._playAddeo();
         }

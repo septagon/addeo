@@ -21,6 +21,9 @@ const getNetflixVideo = function () {
         set currentTime(newTime) {
             chrome.runtime.sendMessage({background: true, netflix_player_seek: true, newTime: newTime});
         },
+        get paused() {
+            return video.paused;
+        },
         pause() {
             video.pause();
         },
