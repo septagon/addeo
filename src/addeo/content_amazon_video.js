@@ -1,6 +1,6 @@
-const DISNEY_PLUS_VIDEO_PARENT_NAME = "btm-media-client";
-const getDisneyPlusVideo = function () {
-    const elements = document.getElementsByClassName(DISNEY_PLUS_VIDEO_PARENT_NAME);
+const AMAZON_VIDEO_PARENT_NAME = "rendererContainer";
+const getAmazonVideo = function () {
+    const elements = document.getElementsByClassName(AMAZON_VIDEO_PARENT_NAME);
     if (elements.length < 1) {
         return undefined;
     }
@@ -56,7 +56,7 @@ const createAddeoYouTubeIFrame = function (additiveContent) {
 
 const injectAddeo = function () {
     // Acquire the primary video.
-    const video = getDisneyPlusVideo();
+    const video = getAmazonVideo();
     if (video === undefined) {
         console.log("Unable to find video; retrying.");
         setTimeout(injectAddeo, 500);

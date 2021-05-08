@@ -1,15 +1,15 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Addeo",
     "description": "Add synchronized third-party content to online videos.",
-    "version": "0.01",
+    "version": "0.02",
     "icons": {
         "16": "img/icon16.png",
         "48": "img/icon48.png",
         "128": "img/icon128.png"
     },
     "background": {
-        "scripts": ["background.js"]
+        "service_worker": "background.js"
     },
     "content_scripts": [
         {
@@ -23,10 +23,18 @@
         },
         {
             "matches": ["https://*.disneyplus.com/video/*addeo*"],
-            "js": ["content_disneyplus_video.js"]
+            "js": ["content_shared_video.js", "content_disneyplus_video.js"]
+        },
+        {
+            "matches": ["https://*.amazon.com/gp/video/*addeo*"],
+            "js": ["content_shared_video.js", "content_amazon_video.js"]
+        },
+        {
+            "matches": ["https://*.netflix.com/watch/*addeo*"],
+            "js": ["content_shared_video.js", "content_netflix_video.js"]
         }
     ],
-    "permissions": [
+    "host_permissions": [
         "https://*.youtube.com/*addeo*",
         "https://*.disneyplus.com/*addeo*"
     ]
