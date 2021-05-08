@@ -36,6 +36,8 @@
     ],
     "host_permissions": [
         "https://*.youtube.com/*addeo*",
-        "https://*.disneyplus.com/*addeo*"
+        "https://*.disneyplus.com/*addeo*",
+        "https://*.amazon.com/gp/video/*addeo*",
+        "https://*.netflix.com/watch/*addeo*"
     ]
 }
